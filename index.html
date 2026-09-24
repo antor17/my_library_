@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraLibrary - Academic Book Reservation System</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary: #10b981;
+      --dark-bg: #0f172a;
+      --bg-light: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --error-color: #ef4444;
+      --success-bg: #ecfdf5;
+      --success-border: #10b981;
+      --radius: 10px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-light); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; line-height: 1.6; }
+    .container { width: 90%; max-width: 1080px; margin: 0 auto; }
+    .hidden { display: none !important; }
+
+    header {
+      background-color: var(--dark-bg);
+      color: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    .logo span { color: var(--secondary); }
+
+    .nav-links {
+      display: flex;
+      gap: 0.8rem;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .menu-icon {
+      display: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .sidebar {
+      position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+      background: #1e293b; color: #ffffff; padding: 2rem 1.5rem;
+      transition: right 0.3s ease; z-index: 2000;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+    }
+    .sidebar.open { right: 0; }
+    .sidebar .close-btn { text-align: right; font-size: 1.2rem; cursor: pointer; margin-bottom: 2rem; color: #94a3b8; }
+    .sidebar ul { list-style: none; }
+    .sidebar li {
+      padding: 0.9rem 0; border-bottom: 1px solid #334155; cursor: pointer;
+      font-size: 0.95rem; color: #cbd5e1;
+    }
+    .sidebar li:hover { color: var(--secondary); }
+
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      color: #ffffff;
+      padding: 4.5rem 1rem;
+      text-align: center;
+    }
+
+    .hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 1rem; }
+    .hero p { max-width: 600px; margin: 0 auto 2rem; font-size: 1.05rem; color: #94a3b8; }
+
+    .hero-btns { display: flex; justify-content: center; gap: 1rem; }
+    
+    .btn {
+      padding: 0.75rem 1.6rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background-color: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+    .btn-secondary { background-color: transparent; color: #ffffff; border: 1px solid #64748b; }
+    .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.1); border-color: #cbd5e1; }
+
+    .cards-section { padding: 3.5rem 0; }
+    .section-title { text-align: center; font-size: 1.6rem; color: var(--text-main); margin-bottom: 2rem; font-weight: 700; }
+    
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); }
+
+    .card-icon {
+      width: 48px; height: 48px; background: #e0e7ff; color: var(--primary);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 1.2rem;
+    }
+
+    .card h3 { font-size: 1.15rem; color: var(--text-main); margin-bottom: 0.5rem; }
+    .card p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem; flex-grow: 1; }
+    .card .btn-card { background-color: #f1f5f9; color: var(--text-main); width: 100%; text-align: center; }
+    .card .btn-card:hover { background-color: var(--primary); color: #ffffff; }
+
+    .form-wrapper {
+      max-width: 680px;
+      margin: 2.5rem auto;
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius);
+      padding: 2.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .form-title { font-size: 1.5rem; color: var(--text-main); margin-bottom: 0.3rem; }
+    .form-subtitle { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.8rem; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 1.1rem; }
+
+    label { display: block; font-size: 0.83rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main); }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #f8fafc;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #ffffff; }
+
+    .error-msg { color: var(--error-color); font-size: 0.78rem; margin-top: 0.25rem; display: block; min-height: 16px; font-weight: 500; }
+
+    .radio-group, .checkbox-group { display: flex; gap: 1.2rem; align-items: center; margin-top: 0.4rem; }
+    .radio-group label, .checkbox-group label { font-weight: normal; font-size: 0.88rem; cursor: pointer; }
+
+    .summary-card {
+      background-color: var(--success-bg);
+      border: 1px solid var(--success-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .summary-card h3 { color: #065f46; font-size: 1.1rem; margin-bottom: 0.6rem; }
+    .summary-card p { font-size: 0.88rem; color: #047857; margin-bottom: 0.3rem; }
+
+    .content-box { background: #fff; border: 1px solid #e2e8f0; padding: 2rem; border-radius: var(--radius); margin: 2rem auto; box-shadow: var(--shadow); }
+    .catalog-item { border-bottom: 1px solid #e2e8f0; padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; }
+    .catalog-item:last-child { border-bottom: none; }
+
+    footer { background: var(--dark-bg); color: #94a3b8; padding: 2.2rem 0; margin-top: auto; font-size: 0.85rem; }
+    .footer-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+    .footer-flex h4 { color: #ffffff; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .footer-flex a { color: var(--secondary); text-decoration: none; margin-right: 0.8rem; font-weight: 500; }
+    .footer-flex a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        background: var(--dark-bg);
+        padding: 1rem;
+        box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+      }
+      .nav-links.active-menu { display: flex; }
+      .menu-icon { display: block; }
+      .form-row { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container navbar">
+      <div class="logo" onclick="showPage('home')">📚 Aura<span>Library</span></div>
+      
+      <ul class="nav-links" id="navMenu">
+        <li><a id="nav-home" class="active" onclick="showPage('home')">Home</a></li>
+        <li><a id="nav-reserve" onclick="showPage('reserve')">Book Reservation</a></li>
+        <li><a id="nav-catalog" onclick="showPage('catalog')">Catalog</a></li>
+        <li><a id="nav-help" onclick="showPage('help')">Help Desk</a></li>
+      </ul>
+
+      <div class="menu-icon" onclick="toggleMobileMenu()">☰</div>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <div class="close-btn" onclick="toggleSidebar()">✖ Close</div>
+    <ul>
+      <li onclick="alert('Profile section')">👤 User Profile</li>
+      <li onclick="alert('Settings section')">⚙️ Settings</li>
+      <li onclick="alert('Redirecting to Login')">🔑 Login</li>
+      <li onclick="alert('Logged Out')">🚪 Logout</li>
+    </ul>
+  </div>
+
+  <main id="pageHome">
+    <section class="hero">
+      <div class="container">
+        <h1>Smart Academic Book Reservation System</h1>
+        <p>Reserve university textbooks, academic papers, and quiet study pods with real-time online processing.</p>
+        <div class="hero-btns">
+          <button class="btn btn-primary" onclick="showPage('reserve')">Book Now</button>
+          <button class="btn btn-secondary" onclick="showPage('catalog')">Explore Catalog</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="container cards-section">
+      <h2 class="section-title">Our Essential Services</h2>
+      <div class="cards-grid">
+        
+        <div class="card">
+          <div class="card-icon">📖</div>
+          <h3>Book Reservation</h3>
+          <p>Reserve academic textbooks ahead of time to ensure immediate availability for campus pickup.</p>
+          <button class="btn btn-card" onclick="showPage('reserve')">Reserve Books</button>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💻</div>
+          <h3>Digital E-Catalog</h3>
+          <p>Access thousands of research journals, PDFs, and archived publications remotely.</p>
+          <button class="btn btn-card" onclick="showPage('catalog')">View Catalog</button>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <h3>Study Pod Booking</h3>
+          <p>Secure quiet individual or team study rooms equipped with Wi-Fi and whiteboards.</p>
+          <button class="btn btn-card" onclick="showPage('reserve')">Book Room</button>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <main id="pageReserve" class="container hidden">
+    <div class="form-wrapper">
+      <h2 class="form-title">Book Reservation Request</h2>
+      <p class="form-subtitle">Complete all required fields below to submit your reservation.</p>
+
+      <form id="resForm" novalidate>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullName">1. Full Name *</label>
+            <input type="text" id="fullName" placeholder="John Doe">
+            <span class="error-msg" id="errFullName"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="emailAddr">2. Email Address *</label>
+            <input type="email" id="emailAddr" placeholder="john@university.edu">
+            <span class="error-msg" id="errEmailAddr"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">3. Account Password * (Length Rule: Min 6)</label>
+            <input type="password" id="password" placeholder="Minimum 6 characters">
+            <span class="error-msg" id="errPassword"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">4. Phone Number * (Pattern Rule: 11 Digits)</label>
+            <input type="text" id="phone" placeholder="01700000000">
+            <span class="error-msg" id="errPhone"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category">5. Book Category *</label>
+            <select id="category">
+              <option value="">-- Choose Category --</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+            <span class="error-msg" id="errCategory"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">6. Book Quantity *</label>
+            <input type="number" id="quantity" value="1" min="1" max="5">
+            <span class="error-msg" id="errQuantity"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startDate">7. Start Date *</label>
+            <input type="date" id="startDate">
+            <span class="error-msg" id="errStartDate"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="endDate">8. End Date * (Cross-Field Validation)</label>
+            <input type="date" id="endDate">
+            <span class="error-msg" id="errEndDate"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>9. Borrower Status</label>
+          <div class="radio-group">
+            <label><input type="radio" name="userRole" value="Student" checked> Student</label>
+            <label><input type="radio" name="userRole" value="Faculty"> Faculty</label>
+            <label><input type="radio" name="userRole" value="Researcher"> Researcher</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="idDocument">10. Upload Student ID Document *</label>
+          <input type="file" id="idDocument" accept=".pdf,.jpg,.png">
+          <span class="error-msg" id="errIdDocument"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">11. Book Titles or Remarks</label>
+          <textarea id="notes" rows="2" placeholder="List specific book names or author preferences..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="termsCheck">
+            <label for="termsCheck">I agree to the library policies & return rules *</label>
+          </div>
+          <span class="error-msg" id="errTermsCheck"></span>
+        </div>
+
+        <div style="display:flex; gap: 1rem; margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary" style="flex:2;">Submit Reservation</button>
+          <button type="button" class="btn btn-secondary" style="flex:1; color:var(--text-main); border-color:var(--border-color);" onclick="resetForm()">Reset</button>
+        </div>
+      </form>
+
+      <div id="summaryBox" class="summary-card hidden">
+        <h3>🎉 Reservation Confirmed Successfully!</h3>
+        <p id="sumName"></p>
+        <p id="sumEmail"></p>
+        <p id="sumPhone"></p>
+        <p id="sumCategory"></p>
+        <p id="sumDates"></p>
+        <p id="sumRole"></p>
+      </div>
+
+    </div>
+  </main>
+
+  <main id="pageCatalog" class="container hidden">
+    <div class="content-box">
+      <h2>📚 E-Catalog & Book Directory</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Browse available physical books and electronic publications.</p>
+      
+      <div class="catalog-item">
+        <div>
+          <strong>Structure and Interpretation of Computer Programs</strong>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Author: Harold Abelson | Computer Science</p>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('reserve')">Reserve</button>
+      </div>
+
+      <div class="catalog-item">
+        <div>
+          <strong>Introduction to Algorithms (4th Edition)</strong>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Author: Thomas H. Cormen | Computer Science</p>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('reserve')">Reserve</button>
+      </div>
+
+      <div class="catalog-item">
+        <div>
+          <strong>Principles of Corporate Finance</strong>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Author: Richard Brealey | Business</p>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('reserve')">Reserve</button>
+      </div>
+    </div>
+  </main>
+
+  <main id="pageHelp" class="container hidden">
+    <div class="content-box">
+      <h2>❓ Help Desk & Support</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Common questions and reservation support details.</p>
+
+      <div style="margin-bottom: 1.2rem;">
+        <strong>📌 How to reserve a book?</strong>
+        <p style="font-size:0.85rem; color: var(--text-muted);">Go to the Reservation page, fill in valid user details with required borrow dates, and click Submit.</p>
+      </div>
+
+      <div style="margin-bottom: 1.2rem;">
+        <strong>📌 What is the loan duration?</strong>
+        <p style="font-size:0.85rem; color: var(--text-muted);">Books can be retained for up to 14 days maximum per request.</p>
+      </div>
+
+      <div>
+        <strong>📞 Phone Support:</strong>
+        <p style="font-size:0.85rem; color: var(--text-muted);">+880 1700-000000 (Available 9 AM - 5 PM)</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-flex">
+      <div>
+        <h4>AuraLibrary Portal</h4>
+        <p>Central Academic Library Reservation System.</p>
+      </div>
+      <div>
+        <h4>Contact Us</h4>
+        <p>📍 Location: Dhaka, Bangladesh</p>
+        <p>📧 Email: library@auralibrary.edu</p>
+      </div>
+      <div>
+        <h4>Social Media Links</h4>
+        <a href="#">[Facebook]</a>
+        <a href="#">[Twitter]</a>
+        <a href="#">[LinkedIn]</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function showPage(pageId) {
+      document.getElementById('pageHome').classList.add('hidden');
+      document.getElementById('pageReserve').classList.add('hidden');
+      document.getElementById('pageCatalog').classList.add('hidden');
+      document.getElementById('pageHelp').classList.add('hidden');
+
+      document.getElementById('nav-home').classList.remove('active');
+      document.getElementById('nav-reserve').classList.remove('active');
+      document.getElementById('nav-catalog').classList.remove('active');
+      document.getElementById('nav-help').classList.remove('active');
+
+      if (pageId === 'home') {
+        document.getElementById('pageHome').classList.remove('hidden');
+        document.getElementById('nav-home').classList.add('active');
+      } else if (pageId === 'reserve') {
+        document.getElementById('pageReserve').classList.remove('hidden');
+        document.getElementById('nav-reserve').classList.add('active');
+      } else if (pageId === 'catalog') {
+        document.getElementById('pageCatalog').classList.remove('hidden');
+        document.getElementById('nav-catalog').classList.add('active');
+      } else if (pageId === 'help') {
+        document.getElementById('pageHelp').classList.remove('hidden');
+        document.getElementById('nav-help').classList.add('active');
+      }
+
+      document.getElementById('navMenu').classList.remove('active-menu');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('navMenu').classList.toggle('active-menu');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    document.getElementById('resForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+      document.getElementById('summaryBox').classList.add('hidden');
+
+      let isValid = true;
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const emailAddr = document.getElementById('emailAddr').value.trim();
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value.trim();
+      const category = document.getElementById('category').value;
+      const quantity = document.getElementById('quantity').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      const idDocument = document.getElementById('idDocument').value;
+      const termsCheck = document.getElementById('termsCheck').checked;
+
+      if(!fullName) { 
+        document.getElementById('errFullName').textContent = 'Full name is required.'; 
+        isValid = false; 
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if(!emailAddr) { 
+        document.getElementById('errEmailAddr').textContent = 'Email address is required.'; 
+        isValid = false; 
+      } else if(!emailRegex.test(emailAddr)) {
+        document.getElementById('errEmailAddr').textContent = 'Please enter a valid email address.'; 
+        isValid = false;
+      }
+
+      if(!password) { 
+        document.getElementById('errPassword').textContent = 'Password is required.'; 
+        isValid = false; 
+      } else if(password.length < 6) {
+        document.getElementById('errPassword').textContent = 'Password must be at least 6 characters.'; 
+        isValid = false;
+      }
+
+      const phoneRegex = /^01[3-9]\d{8}$/;
+      if(!phone) { 
+        document.getElementById('errPhone').textContent = 'Phone number is required.'; 
+        isValid = false; 
+      } else if(!phoneRegex.test(phone)) {
+        document.getElementById('errPhone').textContent = 'Enter an 11-digit mobile number starting with 01.'; 
+        isValid = false;
+      }
+
+      if(!category) { 
+        document.getElementById('errCategory').textContent = 'Please select a book category.'; 
+        isValid = false; 
+      }
+      
+      if(!quantity || quantity < 1) { 
+        document.getElementById('errQuantity').textContent = 'Quantity must be 1 or higher.'; 
+        isValid = false; 
+      }
+
+      if(!startDate) { 
+        document.getElementById('errStartDate').textContent = 'Start date is required.'; 
+        isValid = false; 
+      }
+      
+      if(!endDate) { 
+        document.getElementById('errEndDate').textContent = 'End date is required.'; 
+        isValid = false; 
+      }
+
+      if(startDate && endDate) {
+        if(new Date(endDate) <= new Date(startDate)) {
+          document.getElementById('errEndDate').textContent = 'End date MUST be after the Start date.';
+          isValid = false;
+        }
+      }
+
+      if(!idDocument) { 
+        document.getElementById('errIdDocument').textContent = 'Please upload a copy of your student ID.'; 
+        isValid = false; 
+      }
+
+      if(!termsCheck) { 
+        document.getElementById('errTermsCheck').textContent = 'You must accept the terms to proceed.'; 
+        isValid = false; 
+      }
+
+      if(isValid) {
+        const selectedRole = document.querySelector('input[name="userRole"]:checked').value;
+        
+        document.getElementById('sumName').innerHTML = `<strong>Name:</strong> ${fullName}`;
+        document.getElementById('sumEmail').innerHTML = `<strong>Email:</strong> ${emailAddr}`;
+        document.getElementById('sumPhone').innerHTML = `<strong>Phone:</strong> ${phone}`;
+        document.getElementById('sumCategory').innerHTML = `<strong>Category & Qty:</strong> ${category} (${quantity} Copy)`;
+        document.getElementById('sumDates').innerHTML = `<strong>Duration:</strong> ${startDate} to ${endDate}`;
+        document.getElementById('sumRole').innerHTML = `<strong>Role:</strong> ${selectedRole}`;
+
+        document.getElementById('summaryBox').classList.remove('hidden');
+        document.getElementById('summaryBox').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
+    function resetForm() {
+      document.getElementById('resForm').reset();
+      document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+      document.getElementById('summaryBox').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
